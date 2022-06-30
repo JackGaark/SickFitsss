@@ -35,7 +35,7 @@ export const rules = {
       return true;
     }
     // 2. If not, do they own this item?
-    return { user: { id: { equals: session.itemId } } };
+    return { user: { id: session.itemId } };
   },
   canOrder({ session }: ListAccessArgs) {
     if (!isSignedIn({ session })) {
@@ -46,7 +46,7 @@ export const rules = {
       return true;
     }
     // 2. If not, do they own this item?
-    return { user: { id: { equals: session!.itemId } } };
+    return { user: { id: session.itemId } };
   },
   canManageOrderItems({ session }: ListAccessArgs) {
     if (!isSignedIn({ session })) {
@@ -57,17 +57,16 @@ export const rules = {
       return true;
     }
     // 2. If not, do they own this item?
-    return { order: { user: { id: { equals: session!.itemId } } } };
+    return { order: { user: { id: session.itemId } } };
   },
   canReadProducts({ session }: ListAccessArgs) {
-    if (!isSignedIn({ session })) {
-      return false;
-    }
+    if (!session) return { status: "AVAILABLE" }; //user should still be able to see products is not logged in
+
     if (permissions.canManageProducts({ session })) {
-      return true; // They can read everything!
+      return true;
     }
-    // They should only see available products (based on the status field)
-    return { status: "AVAILABLE" };
+
+    return { OR: [{ user: { id: session.itemId } }, { status: "AVAILABLE" }] };
   },
   canManageUsers({ session }: ListAccessArgs) {
     if (!isSignedIn({ session })) {
@@ -77,6 +76,6 @@ export const rules = {
       return true;
     }
     // Otherwise they may only update themselves!
-    return { id: { equals: session!.itemId } };
+    return { id: session.itemId };
   },
 };
